@@ -1,0 +1,18 @@
+# Maven build output
+target/
+dependency-reduced-pom.xml
+
+# Logs
+*.log
+
+# IDE settings (Optional: you can include .vscode if you want to share editor config)
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
