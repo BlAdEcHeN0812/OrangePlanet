@@ -12,11 +12,13 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class ZjuPassportApi {
     private static final Logger logger = LoggerFactory.getLogger(ZjuPassportApi.class);
     private static final String LOGIN_URL = "https://zjuam.zju.edu.cn/cas/login";       //浙大CAS登录地址

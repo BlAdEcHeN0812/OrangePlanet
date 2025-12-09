@@ -3,16 +3,28 @@ package com.orangeplanet.zjuhelper;
 import com.orangeplanet.zjuhelper.service.AuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.Scanner;
 
-public class Main {
+@SpringBootApplication
+public class Main implements CommandLineRunner {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
+    @Autowired
+    private AuthService authService;
+
     public static void main(String[] args) {
+        SpringApplication.run(Main.class, args);
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
         logger.info("ZJU Helper Application Started");
         
-        AuthService authService = new AuthService();
         Scanner scanner = new Scanner(System.in);
 
         System.out.print("Enter Username (Student ID): ");
@@ -28,6 +40,6 @@ public class Main {
             logger.error("Login failed. Please check your credentials.");
         }
         
-        scanner.close();
+        // scanner.close(); // Avoid closing System.in in Spring Boot if not necessary
     }
 }
