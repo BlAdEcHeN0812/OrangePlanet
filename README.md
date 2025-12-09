@@ -15,7 +15,7 @@ A Java utility application for Zhejiang University students.
 
 The project is structured as a standard Maven project:
 
-- `src/main/java/com/orangeplannet/zjuhelper`
+- `src/main/java/com/orangeplanet/zjuhelper`
     - `api`: Interfaces for interacting with ZJU services (Passport, Dean's Office, Canvas, etc.).
     - `model`: Data models for courses, users, grades, etc.
     - `service`: Business logic and data aggregation.

@@ -1,4 +1,4 @@
-package com.orangeplannet.zjuhelper.util;
+package com.orangeplanet.zjuhelper.util;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;

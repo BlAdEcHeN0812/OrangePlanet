@@ -1,9 +1,9 @@
-package com.orangeplannet.zjuhelper.api;
+package com.orangeplanet.zjuhelper.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.orangeplannet.zjuhelper.util.HttpClientUtil;
-import com.orangeplannet.zjuhelper.util.RsaEncryptionUtil;
+import com.orangeplanet.zjuhelper.util.HttpClientUtil;
+import com.orangeplanet.zjuhelper.util.RsaEncryptionUtil;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ParseException;

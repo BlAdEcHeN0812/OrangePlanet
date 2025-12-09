@@ -1,4 +1,4 @@
-package com.orangeplannet.zjuhelper.util;
+package com.orangeplanet.zjuhelper.util;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;

@@ -1,6 +1,6 @@
-package com.orangeplannet.zjuhelper.service;
+package com.orangeplanet.zjuhelper.service;
 
-import com.orangeplannet.zjuhelper.api.ZjuPassportApi;
+import com.orangeplanet.zjuhelper.api.ZjuPassportApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
