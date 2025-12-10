@@ -13,7 +13,7 @@ public class Course {
     private String teacher;     // 教师姓名
     private String location;    // 上课地点
     private String dayOfWeek;   // 星期几 
-    private String timeSlot;    // 节次 
+    private String startTime;    // 节次 
     private String weeks;       // 周次 
     private String credits;     // 学分
     private String test;        // 考试
@@ -28,7 +28,7 @@ public class Course {
         this.teacher = teacher;
         this.location = location;
         this.dayOfWeek = dayOfWeek;
-        this.timeSlot = timeSlot;
+        this.startTime = startTime;
         this.weeks = weeks;
         this.credits = credits;
         this.test = test;
@@ -74,12 +74,12 @@ public class Course {
         this.dayOfWeek = dayOfWeek;
     }
 
-    public String getTimeSlot() {
-        return timeSlot;
+    public String getStartTime() {
+        return startTime;
     }
 
-    public void setTimeSlot(String timeSlot) {
-        this.timeSlot = timeSlot;
+    public void setStartTime(String startTime) {
+        this.startTime = startTime;
     }
 
     public String getWeeks() {
