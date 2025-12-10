@@ -23,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 @Service
 public class CourseService {
@@ -134,10 +136,8 @@ public class CourseService {
                 logger.error("Error fetching course data", e);
             }
 
-
-
-           if (courseHtml != null) {
-                 logger.info("Full course response:\n{}", courseHtml);
+            if (courseHtml != null) {
+                logger.info("Full course response:\n{}", courseHtml);
             } else {
                 logger.warn("Course response is null.");
             }
@@ -160,14 +160,46 @@ public class CourseService {
                             // 格式示例: 健美（初级）<br>秋冬{第1-8周|2节/周}<br>史倩玉<br>紫金港游泳馆（健身房）zwfzwf
                             String[] parts = kcb.split("<br>");
                             if (parts.length > 0) course.setName(parts[0]);
-                            if (parts.length > 1) course.setWeeks(parts[1]); // 这里包含了周次和节数信息
+                            if (parts.length > 1) {
+                                course.setWeeks(parts[1]); // 这里包含了周次和节数信息
+                                String part1 = parts[1]; // 如 "秋冬{第1-8周|2节/周}"
+
+                                // 直接匹配第一个出现的 "数字+节"
+                                Pattern pattern = Pattern.compile("\\d+节");
+                                Matcher matcher = pattern.matcher(part1);
+
+                                if (matcher.find()) {
+                                    course.setPeriod(matcher.group()); // 设置如 "2节"
+                                }
+                            }
                             if (parts.length > 2) course.setTeacher(parts[2]);
                             if (parts.length > 3) course.setLocation(parts[3]);
+                            if (parts.length > 3) {
+                            String locationWithZwf = parts[3];
+        
+                            // 提取 zwf 中间的内容（考试信息）
+                            String examInfo = "";
+                            Pattern pattern = Pattern.compile("zwf(.*?)zwf");
+                            Matcher matcher = pattern.matcher(locationWithZwf);
+                            if (matcher.find()) {
+                                examInfo = matcher.group(1).trim();
+                         }
+        
+                            // 提取 zwf 之前的内容作为上课地点（去掉所有 zwf 相关内容）
+                            String classLocation = locationWithZwf.replaceAll("zwf.*", "").trim();
+                            
+                            // 设置上课地点和考试信息
+                            course.setLocation(classLocation);
+                            if (!examInfo.isEmpty()) {
+                                course.setTest(examInfo); // 假设 Course 类有 setTest 方法
+                            }
                         }
+                    }
+
 
                         // 尝试获取星期几和节次 (通常字段为 xqj 和 jcs)
                         if (node.has("xqj")) course.setDayOfWeek(node.get("xqj").asText());
-                        if (node.has("jcs")) course.setTimeSlot(node.get("jcs").asText());
+                        if (node.has("djj")) course.setTimeSlot(node.get("djj").asText());
                         
                         // 如果没有从 kcb 解析出名称，尝试直接获取 kcmc
                         if (course.getName() == null && node.has("kcmc")) {

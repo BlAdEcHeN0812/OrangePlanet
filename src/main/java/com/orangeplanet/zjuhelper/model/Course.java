@@ -17,6 +17,7 @@ public class Course {
     private String weeks;       // 周次 
     private String credits;     // 学分
     private String test;        // 考试
+    private String PeriodCount; // 节数
 
     public Course() {
     }
@@ -103,5 +104,13 @@ public class Course {
 
     public void setTest(String test) {
         this.test = test;
+    }
+
+     public String getPeriod() {
+        return PeriodCount;
+    }
+
+    public void setPeriod(String PeriodCount) {
+        this.PeriodCount = PeriodCount;
     }
 }
