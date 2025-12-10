@@ -1,6 +1,13 @@
 package com.orangeplanet.zjuhelper.model;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "courses")
 public class Course {
+    @Id
     private String id;          // 课程代码
     private String name;        // 课程名称
     private String teacher;     // 教师姓名

@@ -27,10 +27,27 @@ public class ZjuPassportApi {
 
     public boolean login(String username, String password) {
         try {
+            // 0. 检查是否已经登录
+            boolean alreadyLoggedIn = HttpClientUtil.getCookieStore().getCookies().stream()
+                    .anyMatch(cookie -> cookie.getName().equals("iPlanetDirectoryPro"));
+            if (alreadyLoggedIn) {
+                logger.info("User already logged in (cookie found). Skipping login process.");
+                return true;
+            }
+
             logger.info("Starting login process for user: " + username);
 
             // 1.获取Execution参数（CAS登录时关键认证参数）
-            String html = HttpClientUtil.doGet(LOGIN_URL);
+            // 使用 doGetForResponse 并禁用自动重定向，以防止已登录时的循环重定向
+            String html = "";
+            try (var response = HttpClientUtil.doGetForResponse(LOGIN_URL, false)) {
+                if (response.getCode() == 302 || response.getCode() == 301) {
+                    logger.info("Login page redirected (likely already logged in).");
+                    return true;
+                }
+                html = org.apache.hc.core5.http.io.entity.EntityUtils.toString(response.getEntity());
+            }
+            
             Document doc = Jsoup.parse(html);   //解析HTML
             String execution = doc.select("input[name=execution]").val();
             if (execution == null || execution.isEmpty()) {
@@ -59,7 +76,14 @@ public class ZjuPassportApi {
 
             // 提交 POST 请求，禁用自动重定向，以避免 CircularRedirectException
             // 登录成功后，服务器通常会返回 302 重定向，我们只需要检查 Cookie 即可
-            String responseHtml = HttpClientUtil.doPost(LOGIN_URL, new UrlEncodedFormEntity(params), false);
+            String responseHtml = "";
+            try {
+                responseHtml = HttpClientUtil.doPost(LOGIN_URL, new UrlEncodedFormEntity(params), false);
+            } catch (org.apache.hc.client5.http.ClientProtocolException e) {
+                // 捕获 CircularRedirectException (它是 ClientProtocolException 的子类)
+                // 如果发生重定向循环，说明可能已经登录成功并尝试跳转，我们检查 Cookie 确认
+                logger.warn("Caught ClientProtocolException during login (likely circular redirect): " + e.getMessage());
+            }
             
             // 5.检查登录结果
             boolean isLoggedIn = HttpClientUtil.getCookieStore().getCookies().stream()

@@ -8,6 +8,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
@@ -71,11 +72,67 @@ public class HttpClientUtil {
      * @return 响应内容的字符串形式
      */
     public static String doGet(String url) throws IOException, ParseException {
+        return doGet(url, true);
+    }
+
+    /**
+     * 发送 GET 请求，可配置是否自动重定向
+     * @param url 请求地址
+     * @param allowRedirects 是否允许自动重定向
+     * @return 响应内容的字符串形式
+     */
+    public static String doGet(String url, boolean allowRedirects) throws IOException, ParseException {
         HttpGet httpGet = new HttpGet(url);
-        try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+        HttpClientContext context = HttpClientContext.create();
+        if (!allowRedirects) {
+            RequestConfig config = RequestConfig.custom()
+                    .setRedirectsEnabled(false)
+                    .build();
+            context.setRequestConfig(config);
+        }
+        try (CloseableHttpResponse response = httpClient.execute(httpGet, context)) {
             HttpEntity entity = response.getEntity();
             return EntityUtils.toString(entity);
         }
+    }
+
+    /**
+     * 发送 GET 请求并返回 CloseableHttpResponse，调用者需要手动关闭响应
+     * @param url 请求地址
+     * @param allowRedirects 是否允许自动重定向
+     * @return CloseableHttpResponse 对象
+     */
+    public static CloseableHttpResponse doGetForResponse(String url, boolean allowRedirects) throws IOException {
+        HttpGet httpGet = new HttpGet(url);
+        HttpClientContext context = HttpClientContext.create();
+        if (!allowRedirects) {
+            RequestConfig config = RequestConfig.custom()
+                    .setRedirectsEnabled(false)
+                    .build();
+            context.setRequestConfig(config);
+        }
+        return httpClient.execute(httpGet, context);
+    }
+
+    /**
+     * 发送 POST 请求并返回 CloseableHttpResponse，调用者需要手动关闭响应
+     * @param url 请求地址
+     * @param entity 请求体
+     * @param allowRedirects 是否允许自动重定向
+     * @return CloseableHttpResponse 对象
+     */
+    public static CloseableHttpResponse doPostForResponse(String url, HttpEntity entity, boolean allowRedirects) throws IOException {
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.setEntity(entity);
+        
+        HttpClientContext context = HttpClientContext.create();
+        if (!allowRedirects) {
+            RequestConfig config = RequestConfig.custom()
+                    .setRedirectsEnabled(false)
+                    .build();
+            context.setRequestConfig(config);
+        }
+        return httpClient.execute(httpPost, context);
     }
 
     /**
@@ -99,14 +156,15 @@ public class HttpClientUtil {
         HttpPost httpPost = new HttpPost(url);
         httpPost.setEntity(entity);
         
+        HttpClientContext context = HttpClientContext.create();
         if (!allowRedirects) {
             RequestConfig config = RequestConfig.custom()
                     .setRedirectsEnabled(false)
                     .build();
-            httpPost.setConfig(config);
+            context.setRequestConfig(config);
         }
 
-        try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
+        try (CloseableHttpResponse response = httpClient.execute(httpPost, context)) {
             HttpEntity responseEntity = response.getEntity();
             return responseEntity != null ? EntityUtils.toString(responseEntity) : "";
         }
