@@ -199,7 +199,7 @@ public class CourseService {
 
                         // 尝试获取星期几和节次 (通常字段为 xqj 和 jcs)
                         if (node.has("xqj")) course.setDayOfWeek(node.get("xqj").asText());
-                        if (node.has("djj")) course.setTimeSlot(node.get("djj").asText());
+                        if (node.has("djj")) course.setStartTime(node.get("djj").asText());
                         
                         // 如果没有从 kcb 解析出名称，尝试直接获取 kcmc
                         if (course.getName() == null && node.has("kcmc")) {
