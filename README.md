@@ -1,32 +1,24 @@
-# ZJU Helper
+# ZJU Helper (Web)
 
-A Java utility application for Zhejiang University students.
+A Spring Boot web application for Zhejiang University students to view their course schedule.
 
 ## Features
 
-- **Course Schedule**: View your class schedule.
-- **Grades & Exams**: Query grades and exam arrangements.
-- **Learning at ZJU**: Access assignments, download attachments, view courseware.
-- **Attendance**: Automatic detection of attendance checks.
-- **Zhiyun**: View class replays.
-- **Email**: Access ZJU email.
+- **Course Schedule**: View your class schedule in a web browser.
+- **ZJU Passport Login**: Secure login via ZJU Unified Identity Authentication.
 
 ## Architecture
 
-The project is structured as a standard Maven project:
+The project is a Spring Boot application serving a static frontend:
 
-- `src/main/java/com/orangeplanet/zjuhelper`
-    - `api`: Interfaces for interacting with ZJU services (Passport, Dean's Office, Canvas, etc.).
-    - `model`: Data models for courses, users, grades, etc.
-    - `service`: Business logic and data aggregation.
-    - `util`: Utilities for HTTP requests and HTML parsing.
+- **Backend**: Spring Boot 2.7 (Java 11)
+- **Frontend**: HTML/CSS/JS (served from `src/main/resources/static`)
+- **Database**: H2 In-Memory Database
 
 ## Getting Started
 
-1.  **Prerequisites**: Java 17+, Maven.
-2.  **Build**: `mvn clean install`
+1.  **Prerequisites**: Java 11+, Maven.
+2.  **Build**: `mvn clean package`
 3.  **Run**: `java -jar target/zjuhelper-1.0-SNAPSHOT.jar`
+4.  **Access**: Open [http://localhost:8080](http://localhost:8080) in your browser.
 
-## First Step
-
-The first step in development is to implement the **Authentication Service** (`AuthService`) to handle login via ZJU Passport (Unified Identity Authentication). This is required for all other features.

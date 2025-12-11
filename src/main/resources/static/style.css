@@ -1,0 +1,234 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 60px;
+    background-color: #eef2f5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+    border-right: 1px solid #ddd;
+}
+
+.sidebar-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: #555;
+    font-size: 20px;
+}
+
+.sidebar-icon.active {
+    background-color: #fff;
+    color: #007bff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.sidebar-icon:hover {
+    background-color: #fff;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow: hidden;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+/* Timetable Grid */
+.timetable-container {
+    flex: 1;
+    display: flex;
+    overflow: auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    position: relative;
+}
+
+.time-column {
+    width: 60px;
+    flex-shrink: 0;
+    border-right: 1px solid #eee;
+    background: #fafafa;
+}
+
+.time-slot-header {
+    height: 50px; /* Header height */
+    border-bottom: 1px solid #eee;
+}
+
+.time-slot {
+    height: 60px; /* Height per class period */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 12px;
+    color: #666;
+}
+
+.time-slot span:first-child {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+}
+
+.days-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: 50px repeat(13, 60px); /* Header + 13 periods */
+    min-width: 800px;
+    position: relative; /* Essential for absolute positioning of course cards within grid areas */
+}
+
+.day-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: #555;
+    border-bottom: 1px solid #eee;
+    background: #fafafa;
+}
+
+.grid-cell {
+    border-bottom: 1px solid #f9f9f9;
+    border-right: 1px solid #f9f9f9;
+    position: relative;
+}
+
+/* Course Card in Grid */
+.course-card {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    background-color: #e3f2fd;
+    border-left: 4px solid #2196f3;
+    border-radius: 4px;
+    padding: 5px;
+    font-size: 12px;
+    color: #0d47a1;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.1s;
+    z-index: 10;
+}
+
+.course-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 20;
+}
+
+/* Right Panel (Details) */
+.details-panel {
+    width: 250px;
+    background: white;
+    border-left: 1px solid #ddd;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.details-header {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+}
+
+.detail-item {
+    margin-bottom: 20px;
+}
+
+.detail-label {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.detail-value {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+/* Login Overlay */
+#login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.login-box {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    width: 300px;
+    text-align: center;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.login-box button {
+    width: 100%;
+    padding: 10px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}

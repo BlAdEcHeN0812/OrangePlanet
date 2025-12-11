@@ -45,6 +45,10 @@ public class CourseService {
         return courseRepository.saveAll(courses);
     }
 
+    public List<Course> getAllCourses() {
+        return courseRepository.findAll();
+    }
+
     public List<Course> getCourseList(String username, String password) {
         // 1. 尝试登录（如果已经登录，API内部会跳过）
         // 注意：如果 Main 中已经登录，这里其实是多余的，但为了保证 Service 独立性保留
@@ -169,7 +173,7 @@ public class CourseService {
                                 Matcher matcher = pattern.matcher(part1);
 
                                 if (matcher.find()) {
-                                    course.setPeriod(matcher.group()); // 设置如 "2节"
+                                    // course.setPeriod(matcher.group()); // Deprecated, use skcd
                                 }
                             }
                             if (parts.length > 2) course.setTeacher(parts[2]);
@@ -198,8 +202,12 @@ public class CourseService {
 
 
                         // 尝试获取星期几和节次 (通常字段为 xqj 和 jcs)
-                        if (node.has("xqj")) course.setDayOfWeek(node.get("xqj").asText());
+                        if (node.has("xqj")) {
+                            String xqj = node.get("xqj").asText();
+                            course.setDayOfWeek(mapDayOfWeek(xqj));
+                        }
                         if (node.has("djj")) course.setStartTime(node.get("djj").asText());
+                        if (node.has("skcd")) course.setPeriodCount(node.get("skcd").asText());
                         
                         // 如果没有从 kcb 解析出名称，尝试直接获取 kcmc
                         if (course.getName() == null && node.has("kcmc")) {
@@ -224,6 +232,19 @@ public class CourseService {
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch course list", e);
+        }
+    }
+
+    private String mapDayOfWeek(String xqj) {
+        switch (xqj) {
+            case "1": return "星期一";
+            case "2": return "星期二";
+            case "3": return "星期三";
+            case "4": return "星期四";
+            case "5": return "星期五";
+            case "6": return "星期六";
+            case "7": return "星期日";
+            default: return xqj;
         }
     }
 }
