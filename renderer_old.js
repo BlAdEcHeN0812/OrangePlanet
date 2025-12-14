@@ -3,7 +3,7 @@ const { ElMessage } = ElementPlus;
 
 // Ensure ElementPlusIconsVue is available
 const Icons = typeof ElementPlusIconsVue !== 'undefined' ? ElementPlusIconsVue : {};
-const { User, Lock, List, Message, Notebook, Calendar, Setting, Close, Delete, Edit, Plus } = Icons;
+const { User, Lock } = Icons;
 
 if (Object.keys(Icons).length === 0) {
     console.error("Element Plus Icons not loaded! Check network or CDN.");
@@ -15,15 +15,7 @@ const app = createApp({
         const isLoggedIn = ref(false);
         const loading = ref(false);
         const courses = ref([]);
-        const emails = ref([]);
-        const todos = ref([]);
-        const currentView = ref('courses');
         const currentCourse = ref(null);
-        
-        // Todo related
-        const todoDialogVisible = ref(false);
-        const currentTodo = reactive({ id: null, title: '', content: '', completed: false });
-        let easyMDE = null;
         
         const selectedYear = ref('2024-2025');
         const selectedSemester = ref('1|秋');
@@ -121,134 +113,6 @@ const app = createApp({
                 // setTimeout(checkBackendAndLoad, 2000);
             }
         };
-
-        const fetchEmails = async () => {
-            loading.value = true;
-            try {
-                const formData = new FormData();
-                formData.append('username', loginForm.username);
-                formData.append('password', loginForm.password);
-
-                const response = await fetch(`${API_BASE}/emails`, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (response.ok) {
-                    emails.value = await response.json();
-                    ElMessage.success('邮件获取成功');
-                } else {
-                    ElMessage.error('获取邮件失败');
-                }
-            } catch (error) {
-                console.error('Error fetching emails:', error);
-                ElMessage.error('网络错误');
-            } finally {
-                loading.value = false;
-            }
-        };
-
-        // Todo Functions
-        const fetchTodos = async () => {
-            console.log('Fetching todos...');
-            try {
-                const response = await fetch(`${API_BASE}/todos`);
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Fetched todos:', data);
-                    todos.value = data;
-                } else {
-                    console.error('Failed to fetch todos:', response.status);
-                }
-            } catch (error) {
-                console.error('Error fetching todos:', error);
-            }
-        };
-
-        const openTodoDialog = (todo = null) => {
-            if (todo) {
-                Object.assign(currentTodo, todo);
-            } else {
-                Object.assign(currentTodo, { id: null, title: '', content: '', completed: false });
-            }
-            todoDialogVisible.value = true;
-        };
-
-        const initEditor = () => {
-            if (easyMDE) {
-                easyMDE.toTextArea();
-                easyMDE = null;
-            }
-            easyMDE = new EasyMDE({ 
-                element: document.getElementById('markdown-editor'),
-                initialValue: currentTodo.content,
-                spellChecker: false,
-                status: false
-            });
-        };
-
-        const saveTodo = async () => {
-            if (!currentTodo.title) {
-                ElMessage.warning('请输入标题');
-                return;
-            }
-            
-            currentTodo.content = easyMDE.value();
-            
-            try {
-                const url = currentTodo.id ? `${API_BASE}/todos/${currentTodo.id}` : `${API_BASE}/todos`;
-                const method = currentTodo.id ? 'PUT' : 'POST';
-                
-                const response = await fetch(url, {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(currentTodo)
-                });
-
-                if (response.ok) {
-                    ElMessage.success('保存成功');
-                    todoDialogVisible.value = false;
-                    fetchTodos();
-                } else {
-                    ElMessage.error('保存失败');
-                }
-            } catch (error) {
-                ElMessage.error('网络错误');
-            }
-        };
-
-        const deleteTodo = async (id) => {
-            try {
-                await fetch(`${API_BASE}/todos/${id}`, { method: 'DELETE' });
-                ElMessage.success('删除成功');
-                fetchTodos();
-            } catch (error) {
-                ElMessage.error('删除失败');
-            }
-        };
-
-        const updateTodoStatus = async (todo) => {
-            try {
-                await fetch(`${API_BASE}/todos/${todo.id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(todo)
-                });
-            } catch (error) {
-                console.error('Error updating status:', error);
-            }
-        };
-
-        const renderMarkdown = (content) => {
-            return marked.parse(content || '');
-        };
-
-        // Watch view change to fetch todos
-        Vue.watch(currentView, (newVal) => {
-            if (newVal === 'todos') {
-                fetchTodos();
-            }
-        });
 
         const handleLogin = async () => {
             if (!loginForm.username || !loginForm.password) {
@@ -380,33 +244,7 @@ const app = createApp({
             selectedSemester,
             yearOptions,
             semesterOptions,
-            refreshCourses,
-            fetchEmails,
-            emails,
-            currentView,
-            getCourseStyle,
-            showDetails,
-            logout,
-            User,
-            Lock,
-            List,
-            Message,
-            Notebook,
-            Calendar,
-            Setting,
-            Close,
-            Delete,
-            Edit,
-            Plus,
-            todos,
-            todoDialogVisible,
-            currentTodo,
-            openTodoDialog,
-            initEditor,
-            saveTodo,
-            deleteTodo,
-            updateTodoStatus,
-            renderMarkdown
+            refreshCourses
         };
     }
 });

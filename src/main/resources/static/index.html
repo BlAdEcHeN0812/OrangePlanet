@@ -22,7 +22,7 @@
                 <template #header>
                     <div class="login-header">
                         <h2>OrangePlanet</h2>
-                        <p>浙大课表助手</p>
+                        <p>你的个人助手</p>
                     </div>
                 </template>
                 <el-form :model="loginForm" label-position="top" size="large">
@@ -54,15 +54,23 @@
                     <div class="logo-container">
                         <el-icon :size="24" color="#409EFF"><ElementPlus /></el-icon>
                     </div>
-                    <el-menu-item index="1">
+                    <el-menu-item index="1" @click="currentView = 'courses'">
                         <el-icon><Calendar /></el-icon>
                         <template #title>课表</template>
                     </el-menu-item>
                     <el-menu-item index="2">
                         <el-icon><Notebook /></el-icon>
-                        <template #title>课程</template>
+                        <template #title>书桌</template>
                     </el-menu-item>
-                    <el-menu-item index="3">
+                    <el-menu-item index="3" @click="currentView = 'emails'">
+                        <el-icon><Message /></el-icon>
+                        <template #title>邮箱</template>
+                    </el-menu-item>
+                    <el-menu-item index="4" @click="currentView = 'todos'">
+                        <el-icon><List /></el-icon>
+                        <template #title>待办</template>
+                    </el-menu-item>
+                    <el-menu-item index="5">
                         <el-icon><Setting /></el-icon>
                         <template #title>设置</template>
                     </el-menu-item>
@@ -72,14 +80,27 @@
             <el-container>
                 <el-header class="app-header">
                     <div class="header-left">
-                        <h2>我的课表</h2>
-                        <el-select v-model="selectedYear" placeholder="学年" style="width: 140px; margin-left: 20px;">
-                            <el-option v-for="year in yearOptions" :key="year.value" :label="year.label" :value="year.value"></el-option>
-                        </el-select>
-                        <el-select v-model="selectedSemester" placeholder="学期" style="width: 100px; margin-left: 10px;">
-                            <el-option v-for="sem in semesterOptions" :key="sem.value" :label="sem.label" :value="sem.value"></el-option>
-                        </el-select>
-                        <el-button type="primary" @click="refreshCourses" :loading="loading" style="margin-left: 10px;">查询</el-button>
+                        <h2>
+                            <span v-if="currentView === 'courses'">我的课表</span>
+                            <span v-else-if="currentView === 'emails'">我的邮箱</span>
+                            <span v-else-if="currentView === 'todos'">我的待办</span>
+                            <span v-else>OrangePlanet</span>
+                        </h2>
+                        <template v-if="currentView === 'courses'">
+                            <el-select v-model="selectedYear" placeholder="学年" style="width: 140px; margin-left: 20px;">
+                                <el-option v-for="year in yearOptions" :key="year.value" :label="year.label" :value="year.value"></el-option>
+                            </el-select>
+                            <el-select v-model="selectedSemester" placeholder="学期" style="width: 100px; margin-left: 10px;">
+                                <el-option v-for="sem in semesterOptions" :key="sem.value" :label="sem.label" :value="sem.value"></el-option>
+                            </el-select>
+                            <el-button type="primary" @click="refreshCourses" :loading="loading" style="margin-left: 10px;">查询</el-button>
+                        </template>
+                        <template v-if="currentView === 'emails'">
+                            <el-button type="primary" @click="fetchEmails" :loading="loading" style="margin-left: 20px;">刷新邮件</el-button>
+                        </template>
+                        <template v-if="currentView === 'todos'">
+                            <el-button type="primary" @click="openTodoDialog()" style="margin-left: 20px;">新建待办</el-button>
+                        </template>
                     </div>
                     <div class="header-right">
                         <el-button type="danger" plain size="small" @click="logout">退出登录</el-button>
@@ -87,7 +108,7 @@
                 </el-header>
                 
                 <el-main style="padding: 0; overflow: hidden; display: flex; background-color: #f5f7fa;">
-                    <div class="timetable-wrapper" style="flex: 1; overflow: auto; display: flex; padding: 20px;">
+                    <div v-if="currentView === 'courses'" class="timetable-wrapper" style="flex: 1; overflow: auto; display: flex; padding: 20px;">
                         <!-- Time Column -->
                         <div class="time-column">
                             <div class="time-slot-header"></div>
@@ -119,6 +140,59 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Email View -->
+                    <div v-if="currentView === 'emails'" class="email-wrapper" style="flex: 1; overflow: auto; padding: 20px;">
+                        <el-empty v-if="emails.length === 0" description="暂无邮件"></el-empty>
+                        <el-card v-for="email in emails" :key="email.id" class="email-card" shadow="hover" style="margin-bottom: 15px;">
+                            <template #header>
+                                <div class="email-header">
+                                    <span class="email-subject">{{ email.subject }}</span>
+                                    <span class="email-date">{{ email.date }}</span>
+                                </div>
+                            </template>
+                            <div class="email-sender">发件人: {{ email.sender }}</div>
+                            <div class="email-content">{{ email.content }}</div>
+                        </el-card>
+                    </div>
+
+                    <!-- Todo View -->
+                    <div v-if="currentView === 'todos'" class="todo-wrapper" style="flex: 1; overflow: auto; padding: 20px;">
+                        <el-row :gutter="20">
+                            <el-col :span="6" v-for="todo in todos" :key="todo.id">
+                                <el-card class="todo-card" shadow="hover" :class="{ 'completed': todo.completed }" @click="openTodoDialog(todo)">
+                                    <template #header>
+                                        <div class="todo-header">
+                                            <span class="todo-title">{{ todo.title }}</span>
+                                            <el-checkbox v-model="todo.completed" @change="updateTodoStatus(todo)" @click.stop></el-checkbox>
+                                        </div>
+                                    </template>
+                                    <div class="todo-content-preview" v-html="renderMarkdown(todo.content)"></div>
+                                    <div class="todo-actions">
+                                        <el-button type="danger" :icon="Delete" circle size="small" @click.stop="deleteTodo(todo.id)"></el-button>
+                                    </div>
+                                </el-card>
+                            </el-col>
+                        </el-row>
+                    </div>
+
+                    <!-- Todo Dialog -->
+                    <el-dialog v-model="todoDialogVisible" :title="currentTodo.id ? '编辑待办' : '新建待办'" width="70%" @opened="initEditor">
+                        <el-form :model="currentTodo" label-position="top">
+                            <el-form-item label="标题">
+                                <el-input v-model="currentTodo.title" placeholder="请输入标题"></el-input>
+                            </el-form-item>
+                            <el-form-item label="内容">
+                                <textarea id="markdown-editor"></textarea>
+                            </el-form-item>
+                        </el-form>
+                        <template #footer>
+                            <span class="dialog-footer">
+                                <el-button @click="todoDialogVisible = false">取消</el-button>
+                                <el-button type="primary" @click="saveTodo">保存</el-button>
+                            </span>
+                        </template>
+                    </el-dialog>
                     
                     <!-- Details Panel -->
                     <transition name="slide-fade">
