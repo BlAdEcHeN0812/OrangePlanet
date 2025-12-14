@@ -175,15 +175,20 @@ const app = createApp({
         };
 
         const initEditor = () => {
-            if (easyMDE) {
-                easyMDE.toTextArea();
-                easyMDE = null;
-            }
-            easyMDE = new EasyMDE({ 
-                element: document.getElementById('markdown-editor'),
-                initialValue: currentTodo.content,
-                spellChecker: false,
-                status: false
+            Vue.nextTick(() => {
+                if (easyMDE) {
+                    easyMDE.toTextArea();
+                    easyMDE = null;
+                }
+                const editorElement = document.getElementById('markdown-editor');
+                if (editorElement) {
+                    easyMDE = new EasyMDE({ 
+                        element: editorElement,
+                        initialValue: currentTodo.content,
+                        spellChecker: false,
+                        status: false
+                    });
+                }
             });
         };
 
@@ -240,7 +245,10 @@ const app = createApp({
         };
 
         const renderMarkdown = (content) => {
-            return marked.parse(content || '');
+            if (typeof marked !== 'undefined') {
+                return marked.parse(content || '');
+            }
+            return content;
         };
 
         // Watch view change to fetch todos
