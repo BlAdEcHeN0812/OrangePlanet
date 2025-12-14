@@ -40,16 +40,21 @@ public class CourseService {
     }
 
     @Transactional
-    public List<Course> getAndSaveCourseList(String username, String password) {
-        List<Course> courses = getCourseList(username, password);
+    public List<Course> getAndSaveCourseList(String username, String password, String year, String semester) {
+        List<Course> courses = getCourseList(username, password, year, semester);
         return courseRepository.saveAll(courses);
+    }
+
+    @Transactional
+    public List<Course> getAndSaveCourseList(String username, String password) {
+        return getAndSaveCourseList(username, password, null, null);
     }
 
     public List<Course> getAllCourses() {
         return courseRepository.findAll();
     }
 
-    public List<Course> getCourseList(String username, String password) {
+    public List<Course> getCourseList(String username, String password, String year, String semester) {
         // 1. 尝试登录（如果已经登录，API内部会跳过）
         // 注意：如果 Main 中已经登录，这里其实是多余的，但为了保证 Service 独立性保留
         // 如果 ZjuPassportApi 内部没有正确处理重复登录，这里可能会报错
@@ -109,10 +114,19 @@ public class CourseService {
             String courseUrl = "https://zdbk.zju.edu.cn/jwglxt/kbcx/xskbcx_cxXsKb.html";
             
             // 构造请求参数
-            String year = "2025"; // 示例年份
-            String xnm = year + "-" + (Integer.parseInt(year) + 1);
-            // 尝试使用 "1|秋" 作为参数
-            String xqm = "1|秋"; 
+            String xnm;
+            if (year != null && !year.isEmpty()) {
+                xnm = year;
+            } else {
+                xnm = "2024-2025"; // Default
+            }
+            
+            String xqm;
+            if (semester != null && !semester.isEmpty()) {
+                xqm = semester;
+            } else {
+                xqm = "1"; // Default
+            }
             
             List<NameValuePair> params = new ArrayList<>();
             params.add(new BasicNameValuePair("xnm", xnm));

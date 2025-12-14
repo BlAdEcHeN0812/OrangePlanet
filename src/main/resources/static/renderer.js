@@ -17,6 +17,23 @@ const app = createApp({
         const courses = ref([]);
         const currentCourse = ref(null);
         
+        const selectedYear = ref('2024-2025');
+        const selectedSemester = ref('1|秋');
+        
+        const yearOptions = [
+            { value: '2023-2024', label: '2023-2024' },
+            { value: '2024-2025', label: '2024-2025' },
+            { value: '2025-2026', label: '2025-2026' }
+        ];
+        
+        const semesterOptions = [
+            { value: '1|秋', label: '秋' },
+            { value: '1|冬', label: '冬' },
+            { value: '2|春', label: '春' },
+            { value: '2|夏', label: '夏' },
+            { value: '0|短', label: '短学期' }
+        ];
+        
         const loginForm = reactive({
             username: '',
             password: ''
@@ -39,7 +56,26 @@ const app = createApp({
             const result = [];
             if (!courses.value) return result;
             
+            // Extract filter from selectedSemester (e.g. "1|秋" -> "秋")
+            let filterKey = '';
+            if (selectedSemester.value && selectedSemester.value.includes('|')) {
+                filterKey = selectedSemester.value.split('|')[1];
+            }
+
             courses.value.forEach(course => {
+                // Filter logic:
+                // If filterKey is present, check if course.weeks contains the filterKey
+                // OR if course.weeks contains the combined semester name (e.g. "秋冬" contains "秋")
+                // Note: "秋冬" contains "秋" and "冬", so it shows for both.
+                // "秋" contains "秋", shows for Autumn.
+                // "冬" does not contain "秋", hidden for Autumn.
+                if (filterKey && course.weeks && !course.weeks.includes(filterKey)) {
+                    // Special case: if course.weeks is empty or null, maybe show it? 
+                    // But usually it has value.
+                    // Also handle "短" for short term
+                    return; 
+                }
+
                 const dayIndex = parseDay(course.dayOfWeek);
                 const startRow = parseInt(course.startTime);
                 const duration = parseInt(course.periodCount || course.PeriodCount || 1);
@@ -86,7 +122,13 @@ const app = createApp({
 
             loading.value = true;
             try {
-                const response = await fetch(`${API_BASE}/courses?username=${encodeURIComponent(loginForm.username)}&password=${encodeURIComponent(loginForm.password)}`, {
+                // Extract API code from selectedSemester (e.g. "1|秋" -> "1")
+                let apiSemester = selectedSemester.value;
+                if (apiSemester && apiSemester.includes('|')) {
+                    apiSemester = apiSemester.split('|')[0];
+                }
+
+                const response = await fetch(`${API_BASE}/courses?username=${encodeURIComponent(loginForm.username)}&password=${encodeURIComponent(loginForm.password)}&year=${encodeURIComponent(selectedYear.value)}&semester=${encodeURIComponent(apiSemester)}`, {
                     method: 'POST'
                 });
 
@@ -102,6 +144,38 @@ const app = createApp({
             } catch (e) {
                 console.error("Login error:", e);
                 ElMessage.error('连接服务器出错，请稍后重试');
+            } finally {
+                loading.value = false;
+            }
+        };
+
+        const refreshCourses = async () => {
+             if (!loginForm.username || !loginForm.password) {
+                ElMessage.warning('请先重新登录以获取密码');
+                return;
+            }
+            
+            loading.value = true;
+            try {
+                // Extract API code from selectedSemester (e.g. "1|秋" -> "1")
+                let apiSemester = selectedSemester.value;
+                if (apiSemester && apiSemester.includes('|')) {
+                    apiSemester = apiSemester.split('|')[0];
+                }
+
+                const response = await fetch(`${API_BASE}/courses?username=${encodeURIComponent(loginForm.username)}&password=${encodeURIComponent(loginForm.password)}&year=${encodeURIComponent(selectedYear.value)}&semester=${encodeURIComponent(apiSemester)}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    courses.value = data;
+                    ElMessage.success('查询成功');
+                } else {
+                    ElMessage.error('查询失败');
+                }
+            } catch (e) {
+                ElMessage.error('网络错误');
             } finally {
                 loading.value = false;
             }
@@ -165,7 +239,12 @@ const app = createApp({
             showDetails,
             getCourseStyle,
             User,
-            Lock
+            Lock,
+            selectedYear,
+            selectedSemester,
+            yearOptions,
+            semesterOptions,
+            refreshCourses
         };
     }
 });

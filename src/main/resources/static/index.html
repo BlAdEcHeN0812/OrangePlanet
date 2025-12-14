@@ -73,7 +73,13 @@
                 <el-header class="app-header">
                     <div class="header-left">
                         <h2>我的课表</h2>
-                        <span class="subtitle">2024-2025秋冬学期</span>
+                        <el-select v-model="selectedYear" placeholder="学年" style="width: 140px; margin-left: 20px;">
+                            <el-option v-for="year in yearOptions" :key="year.value" :label="year.label" :value="year.value"></el-option>
+                        </el-select>
+                        <el-select v-model="selectedSemester" placeholder="学期" style="width: 100px; margin-left: 10px;">
+                            <el-option v-for="sem in semesterOptions" :key="sem.value" :label="sem.label" :value="sem.value"></el-option>
+                        </el-select>
+                        <el-button type="primary" @click="refreshCourses" :loading="loading" style="margin-left: 10px;">查询</el-button>
                     </div>
                     <div class="header-right">
                         <el-button type="danger" plain size="small" @click="logout">退出登录</el-button>

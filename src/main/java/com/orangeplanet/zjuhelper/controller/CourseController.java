@@ -15,9 +15,13 @@ public class CourseController {
     private CourseService courseService;
 
     @PostMapping("/courses")
-    public List<Course> getCourses(@RequestParam String username, @RequestParam String password) {
+    public List<Course> getCourses(
+            @RequestParam String username, 
+            @RequestParam String password,
+            @RequestParam(required = false) String year,
+            @RequestParam(required = false) String semester) {
         // 调用你现有的服务逻辑
-        return courseService.getAndSaveCourseList(username, password);
+        return courseService.getAndSaveCourseList(username, password, year, semester);
     }
 
     @GetMapping("/my-courses")
