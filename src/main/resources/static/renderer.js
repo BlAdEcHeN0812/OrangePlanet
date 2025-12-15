@@ -26,7 +26,6 @@ const app = createApp({
         // Todo related
         const todoDialogVisible = ref(false);
         const currentTodo = reactive({ id: null, title: '', content: '', completed: false });
-        let easyMDE = null;
         
         const selectedYear = ref('2024-2025');
         const selectedSemester = ref('1|秋');
@@ -180,31 +179,11 @@ const app = createApp({
             todoDialogVisible.value = true;
         };
 
-        const initEditor = () => {
-            Vue.nextTick(() => {
-                if (easyMDE) {
-                    easyMDE.toTextArea();
-                    easyMDE = null;
-                }
-                const editorElement = document.getElementById('markdown-editor');
-                if (editorElement) {
-                    easyMDE = new EasyMDE({ 
-                        element: editorElement,
-                        initialValue: currentTodo.content,
-                        spellChecker: false,
-                        status: false
-                    });
-                }
-            });
-        };
-
         const saveTodo = async () => {
             if (!currentTodo.title) {
                 ElMessage.warning('请输入标题');
                 return;
             }
-            
-            currentTodo.content = easyMDE.value();
             
             try {
                 const url = currentTodo.id ? `${API_BASE}/todos/${currentTodo.id}` : `${API_BASE}/todos`;
@@ -248,13 +227,6 @@ const app = createApp({
             } catch (error) {
                 console.error('Error updating status:', error);
             }
-        };
-
-        const renderMarkdown = (content) => {
-            if (typeof marked !== 'undefined') {
-                return marked.parse(content || '');
-            }
-            return content;
         };
 
         // Watch view change to fetch todos
@@ -429,11 +401,9 @@ const app = createApp({
             todoDialogVisible,
             currentTodo,
             openTodoDialog,
-            initEditor,
             saveTodo,
             deleteTodo,
-            updateTodoStatus,
-            renderMarkdown
+            updateTodoStatus
         };
     }
 });

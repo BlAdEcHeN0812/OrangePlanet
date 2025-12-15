@@ -17,26 +17,32 @@
 <body>
     <div id="app">
         <!-- Login View -->
-        <div v-if="!isLoggedIn" class="login-container">
-            <el-card class="login-card">
-                <template #header>
-                    <div class="login-header">
-                        <h2>OrangePlanet</h2>
-                        <p>你的个人助手</p>
+        <div v-if="!isLoggedIn" class="login-container minimalist-theme">
+            <div class="minimal-card">
+                <div class="minimal-header">
+                    <h1 class="fade-in-text">OrangePlanet</h1>
+                    <p class="fade-in-text delay-1">您的个人助手</p>
+                </div>
+                <div class="minimal-form-container">
+                    <div class="input-wrapper fade-in-text delay-2">
+                        <input type="text" v-model="loginForm.username" placeholder=" " id="username">
+                        <label for="username">请输入学号</label>
+                        <div class="input-highlight"></div>
                     </div>
-                </template>
-                <el-form :model="loginForm" label-position="top" size="large">
-                    <el-form-item label="学号">
-                        <el-input v-model="loginForm.username" placeholder="请输入学号" :prefix-icon="User"></el-input>
-                    </el-form-item>
-                    <el-form-item label="密码">
-                        <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" show-password :prefix-icon="Lock"></el-input>
-                    </el-form-item>
-                    <el-form-item>
-                        <el-button type="primary" @click="handleLogin" :loading="loading" style="width: 100%;">登录</el-button>
-                    </el-form-item>
-                </el-form>
-            </el-card>
+                    <div class="input-wrapper fade-in-text delay-3">
+                        <input type="password" v-model="loginForm.password" placeholder=" " id="password" @keyup.enter="handleLogin">
+                        <label for="password">请输入密码</label>
+                        <div class="input-highlight"></div>
+                    </div>
+                    <div class="action-wrapper fade-in-text delay-4">
+                        <button class="minimal-button" @click="handleLogin" :disabled="loading">
+                            <span class="btn-content">登录</span>
+                            <div class="btn-ripple"></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="ambient-light"></div>
         </div>
 
         <!-- Main App View -->
@@ -158,33 +164,32 @@
                     </div>
 
                     <!-- Todo View -->
-                    <div v-if="currentView === 'todos'" class="todo-wrapper" style="flex: 1; overflow: auto; padding: 20px;">
-                        <el-row :gutter="20">
-                            <el-col :span="6" v-for="todo in todos" :key="todo.id">
-                                <el-card class="todo-card" shadow="hover" :class="{ 'completed': todo.completed }" @click="openTodoDialog(todo)">
-                                    <template #header>
-                                        <div class="todo-header">
-                                            <span class="todo-title">{{ todo.title }}</span>
-                                            <el-checkbox v-model="todo.completed" @change="updateTodoStatus(todo)" @click.stop></el-checkbox>
-                                        </div>
-                                    </template>
-                                    <div class="todo-content-preview" v-html="renderMarkdown(todo.content)"></div>
-                                    <div class="todo-actions">
-                                        <el-button type="danger" :icon="Delete" circle size="small" @click.stop="deleteTodo(todo.id)"></el-button>
+                    <div v-if="currentView === 'todos'" class="todo-wrapper" style="flex: 1; overflow: auto; padding: 20px; background-color: #fff;">
+                        <div class="todo-list">
+                            <div v-for="todo in todos" :key="todo.id" class="todo-item">
+                                <div class="todo-main">
+                                    <el-checkbox v-model="todo.completed" @change="updateTodoStatus(todo)" size="large"></el-checkbox>
+                                    <div class="todo-info">
+                                        <div class="todo-title" :class="{ 'text-completed': todo.completed }">{{ todo.title }}</div>
+                                        <div class="todo-desc" v-if="todo.content">{{ todo.content }}</div>
                                     </div>
-                                </el-card>
-                            </el-col>
-                        </el-row>
+                                </div>
+                                <div class="todo-actions">
+                                    <el-button type="primary" link @click="openTodoDialog(todo)">编辑</el-button>
+                                    <el-button type="danger" link @click="deleteTodo(todo.id)">删除</el-button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Todo Dialog -->
-                    <el-dialog v-model="todoDialogVisible" :title="currentTodo.id ? '编辑待办' : '新建待办'" width="70%" @opened="initEditor">
+                    <el-dialog v-model="todoDialogVisible" :title="currentTodo.id ? '编辑待办' : '新建待办'" width="500px">
                         <el-form :model="currentTodo" label-position="top">
                             <el-form-item label="标题">
                                 <el-input v-model="currentTodo.title" placeholder="请输入标题"></el-input>
                             </el-form-item>
                             <el-form-item label="内容">
-                                <textarea id="markdown-editor"></textarea>
+                                <el-input v-model="currentTodo.content" type="textarea" :rows="4" placeholder="请输入内容"></el-input>
                             </el-form-item>
                         </el-form>
                         <template #footer>
