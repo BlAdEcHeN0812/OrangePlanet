@@ -138,6 +138,9 @@ const app = createApp({
                 if (response.ok) {
                     emails.value = await response.json();
                     ElMessage.success('邮件获取成功');
+                    if (emailPassword.value) {
+                        localStorage.setItem('email_password', emailPassword.value);
+                    }
                 } else {
                     ElMessage.error('获取邮件失败');
                 }
