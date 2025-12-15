@@ -5,15 +5,17 @@ public class Email {
     private String subject;
     private String date;
     private String size;
+    private String content;
 
     public Email() {
     }
 
-    public Email(String sender, String subject, String date, String size) {
+    public Email(String sender, String subject, String date, String size, String content) {
         this.sender = sender;
         this.subject = subject;
         this.date = date;
         this.size = size;
+        this.content = content;
     }
 
     public String getSender() {
@@ -46,5 +48,13 @@ public class Email {
 
     public void setSize(String size) {
         this.size = size;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 }

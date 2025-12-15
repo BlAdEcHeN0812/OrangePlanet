@@ -145,7 +145,7 @@
                     <!-- Email View -->
                     <div v-if="currentView === 'emails'" class="email-wrapper" style="flex: 1; overflow: auto; padding: 20px;">
                         <el-empty v-if="emails.length === 0" description="暂无邮件"></el-empty>
-                        <el-card v-for="email in emails" :key="email.id" class="email-card" shadow="hover" style="margin-bottom: 15px;">
+                        <el-card v-for="email in emails" :key="email.id" class="email-card" shadow="hover" style="margin-bottom: 15px; cursor: pointer;" @click="showEmailDetails(email)">
                             <template #header>
                                 <div class="email-header">
                                     <span class="email-subject">{{ email.subject }}</span>
@@ -153,7 +153,7 @@
                                 </div>
                             </template>
                             <div class="email-sender">发件人: {{ email.sender }}</div>
-                            <div class="email-content">{{ email.content }}</div>
+                            <div class="email-content-preview" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ email.content ? email.content.substring(0, 100) + '...' : '点击查看详情' }}</div>
                         </el-card>
                     </div>
 
@@ -194,6 +194,17 @@
                             </span>
                         </template>
                     </el-dialog>
+
+                    <!-- Email Detail Dialog -->
+                    <el-dialog v-model="emailDialogVisible" :title="currentEmail ? currentEmail.subject : ''" width="70%">
+                        <div v-if="currentEmail">
+                            <div style="margin-bottom: 20px; color: #666;">
+                                <p><strong>发件人:</strong> {{ currentEmail.sender }}</p>
+                                <p><strong>时间:</strong> {{ currentEmail.date }}</p>
+                            </div>
+                            <div class="email-body" style="white-space: pre-wrap; line-height: 1.6;" v-html="currentEmail.content"></div>
+                        </div>
+                    </el-dialog>
                     
                     <!-- Details Panel -->
                     <transition name="slide-fade">
@@ -217,6 +228,6 @@
             </el-container>
         </el-container>
     </div>
-    <script src="renderer.js?v=6"></script>
+    <script src="renderer.js?v=7"></script>
 </body>
 </html>

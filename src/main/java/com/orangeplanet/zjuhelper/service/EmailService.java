@@ -4,7 +4,9 @@ import com.orangeplanet.zjuhelper.model.Email;
 import org.springframework.stereotype.Service;
 
 import javax.mail.*;
+import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -66,12 +68,51 @@ public class EmailService {
             int size = message.getSize();
             String sizeStr = (size / 1024) + " KB";
 
-            emailList.add(new Email(from, subject, date, sizeStr));
+            String content = "";
+            try {
+                content = getTextFromMessage(message);
+            } catch (Exception e) {
+                content = "Error fetching content: " + e.getMessage();
+            }
+
+            emailList.add(new Email(from, subject, date, sizeStr, content));
         }
 
         inbox.close(false);
         store.close();
 
         return emailList;
+    }
+
+    private String getTextFromMessage(Message message) throws MessagingException, IOException {
+        String result = "";
+        if (message.isMimeType("text/plain")) {
+            result = message.getContent().toString();
+        } else if (message.isMimeType("multipart/*")) {
+            MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
+            result = getTextFromMimeMultipart(mimeMultipart);
+        } else if (message.isMimeType("text/html")) {
+            String html = (String) message.getContent();
+            result = html;
+        }
+        return result;
+    }
+
+    private String getTextFromMimeMultipart(MimeMultipart mimeMultipart)  throws MessagingException, IOException{
+        String result = "";
+        int count = mimeMultipart.getCount();
+        for (int i = 0; i < count; i++) {
+            BodyPart bodyPart = mimeMultipart.getBodyPart(i);
+            if (bodyPart.isMimeType("text/plain")) {
+                result = result + "\n" + bodyPart.getContent();
+                break; // prefer plain text? or maybe html? let's just get something.
+            } else if (bodyPart.isMimeType("text/html")) {
+                String html = (String) bodyPart.getContent();
+                result = result + "\n" + html;
+            } else if (bodyPart.getContent() instanceof MimeMultipart){
+                result = result + getTextFromMimeMultipart((MimeMultipart)bodyPart.getContent());
+            }
+        }
+        return result;
     }
 }

@@ -19,6 +19,8 @@ const app = createApp({
         const todos = ref([]);
         const currentView = ref('courses');
         const currentCourse = ref(null);
+        const currentEmail = ref(null);
+        const emailDialogVisible = ref(false);
         const emailPassword = ref('');
         
         // Todo related
@@ -340,6 +342,11 @@ const app = createApp({
             currentCourse.value = course;
         };
 
+        const showEmailDetails = (email) => {
+            currentEmail.value = email;
+            emailDialogVisible.value = true;
+        };
+
         const parseDay = (dayStr) => {
             const map = {
                 '星期一': 1, 'Mon': 1,
@@ -386,10 +393,13 @@ const app = createApp({
             loading,
             processedCourses,
             currentCourse,
+            currentEmail,
+            emailDialogVisible,
             emailPassword,
             handleLogin,
             logout,
             showDetails,
+            showEmailDetails,
             getCourseStyle,
             User,
             Lock,
