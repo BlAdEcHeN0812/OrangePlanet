@@ -19,6 +19,7 @@ const app = createApp({
         const todos = ref([]);
         const currentView = ref('courses');
         const currentCourse = ref(null);
+        const emailPassword = ref('');
         
         // Todo related
         const todoDialogVisible = ref(false);
@@ -127,7 +128,7 @@ const app = createApp({
             try {
                 const formData = new FormData();
                 formData.append('username', loginForm.username);
-                formData.append('password', loginForm.password);
+                formData.append('password', emailPassword.value || loginForm.password);
 
                 const response = await fetch(`${API_BASE}/emails`, {
                     method: 'POST',
@@ -368,6 +369,10 @@ const app = createApp({
 
         onMounted(() => {
             checkBackendAndLoad();
+            const savedPass = localStorage.getItem('email_password');
+            if (savedPass) {
+                emailPassword.value = savedPass;
+            }
         });
 
         return {
@@ -378,6 +383,7 @@ const app = createApp({
             loading,
             processedCourses,
             currentCourse,
+            emailPassword,
             handleLogin,
             logout,
             showDetails,
