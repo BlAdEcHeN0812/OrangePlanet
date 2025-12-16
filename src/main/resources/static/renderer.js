@@ -3,7 +3,7 @@ const { ElMessage } = ElementPlus;
 
 // Ensure ElementPlusIconsVue is available
 const Icons = typeof ElementPlusIconsVue !== 'undefined' ? ElementPlusIconsVue : {};
-const { User, Lock, List, Message, Notebook, Calendar, Setting, Close, Delete, Edit, Plus } = Icons;
+const { User, Lock, List, Message, Notebook, Calendar, Setting, Close, Delete, Edit, Plus, Picture } = Icons;
 
 if (Object.keys(Icons).length === 0) {
     console.error("Element Plus Icons not loaded! Check network or CDN.");
@@ -27,6 +27,14 @@ const app = createApp({
         const todoDialogVisible = ref(false);
         const currentTodo = reactive({ id: null, title: '', content: '', completed: false });
         
+        // Learning related
+        const learningCourses = ref([]);
+        const learningDialogVisible = ref(false);
+        const currentLearningCourse = ref(null);
+        const learningActiveTab = ref('uploads');
+        const courseUploads = ref([]);
+        const courseRollCalls = ref([]);
+
         const selectedYear = ref('2024-2025');
         const selectedSemester = ref('1|秋');
         
@@ -260,6 +268,8 @@ const app = createApp({
                     courses.value = data;
                     isLoggedIn.value = true;
                     ElMessage.success('登录成功');
+                    // Pre-login to Learning in ZJU in background
+                    fetch(`${API_BASE}/learning/login?username=${encodeURIComponent(loginForm.username)}&password=${encodeURIComponent(loginForm.password)}`, { method: 'POST' });
                 } else {
                     ElMessage.error('登录失败，请检查账号密码');
                 }
@@ -269,6 +279,94 @@ const app = createApp({
             } finally {
                 loading.value = false;
             }
+        };
+
+        const fetchLearningCourses = async () => {
+            loading.value = true;
+            try {
+                // Ensure login
+                await fetch(`${API_BASE}/learning/login?username=${encodeURIComponent(loginForm.username)}&password=${encodeURIComponent(loginForm.password)}`, { method: 'POST' });
+                
+                const response = await fetch(`${API_BASE}/learning/courses`);
+                const data = await response.json();
+                if (data && data.courses) {
+                    // Filter based on selected year and semester
+                    // Format of course_code: (2024-2025-1)-...
+                    const year = selectedYear.value;
+                    let semester = selectedSemester.value;
+                    if (semester && semester.includes('|')) {
+                        semester = semester.split('|')[0];
+                    }
+                    
+                    const prefix = `(${year}-${semester})`;
+                    console.log("Filtering courses with prefix:", prefix);
+                    
+                    learningCourses.value = data.courses.filter(course => {
+                        return course.course_code && course.course_code.startsWith(prefix);
+                    });
+                } else {
+                    learningCourses.value = [];
+                }
+            } catch (error) {
+                console.error('Failed to fetch learning courses:', error);
+                ElMessage.error('获取课程失败');
+            } finally {
+                loading.value = false;
+            }
+        };
+
+        const showLearningDetails = (course) => {
+            currentLearningCourse.value = course;
+            learningDialogVisible.value = true;
+            learningActiveTab.value = 'uploads';
+            courseUploads.value = [];
+            courseRollCalls.value = [];
+            fetchCourseUploads(course.id);
+        };
+
+        const fetchCourseUploads = async (courseId) => {
+            try {
+                const response = await fetch(`${API_BASE}/learning/courses/${courseId}/uploads`);
+                const data = await response.json();
+                
+                // The backend now returns the 'activities' list for this endpoint
+                let files = [];
+                
+                if (Array.isArray(data)) {
+                    files = data;
+                } else if (data && data.activities) {
+                    files = data.activities;
+                }
+
+                // Filter for uploads/files
+                // Common types: 'upload', 'file', 'resource'
+                courseUploads.value = files.filter(item => {
+                    return item.type === 'upload' || item.type === 'file' || (item.uploads && item.uploads.length > 0);
+                });
+                
+            } catch (error) {
+                console.error('Failed to fetch uploads:', error);
+            }
+        };
+
+        const fetchRollCalls = async (courseId) => {
+            try {
+                const response = await fetch(`${API_BASE}/learning/courses/${courseId}/rollcalls`);
+                const data = await response.json();
+                // Adapt based on actual API response
+                if (Array.isArray(data)) {
+                    courseRollCalls.value = data;
+                } else if (data && data.activities) {
+                     courseRollCalls.value = data.activities.filter(a => a.type === 'rollcall');
+                }
+            } catch (error) {
+                console.error('Failed to fetch roll calls:', error);
+                ElMessage.error('获取点名失败');
+            }
+        };
+        
+        const openFile = (url) => {
+            window.open(url, '_blank');
         };
 
         const refreshCourses = async () => {
@@ -349,6 +447,28 @@ const app = createApp({
             };
         };
 
+        const getCourseCoverStyle = (course) => {
+            const gradients = [
+                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                'linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%)',
+                'linear-gradient(120deg, #fccb90 0%, #d57eeb 100%)',
+                'linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)',
+                'linear-gradient(120deg, #f093fb 0%, #f5576c 100%)',
+                'linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%)'
+            ];
+            
+            let hash = 0;
+            const str = course.name || '';
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const index = Math.abs(hash) % gradients.length;
+            
+            return {
+                background: gradients[index]
+            };
+        };
+
         onMounted(() => {
             checkBackendAndLoad();
             const savedPass = localStorage.getItem('email_password');
@@ -373,6 +493,7 @@ const app = createApp({
             showDetails,
             showEmailDetails,
             getCourseStyle,
+            getCourseCoverStyle,
             User,
             Lock,
             selectedYear,
@@ -383,6 +504,7 @@ const app = createApp({
             fetchEmails,
             emails,
             currentView,
+            getCourseCoverStyle,
             getCourseStyle,
             showDetails,
             logout,
@@ -403,7 +525,20 @@ const app = createApp({
             openTodoDialog,
             saveTodo,
             deleteTodo,
-            updateTodoStatus
+            updateTodoStatus,
+            
+            // Learning
+            learningCourses,
+            learningDialogVisible,
+            currentLearningCourse,
+            learningActiveTab,
+            courseUploads,
+            courseRollCalls,
+            fetchLearningCourses,
+            showLearningDetails,
+            fetchRollCalls,
+            openFile,
+            Picture
         };
     }
 });

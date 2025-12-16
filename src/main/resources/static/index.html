@@ -64,7 +64,7 @@
                         <el-icon><Calendar /></el-icon>
                         <template #title>课表</template>
                     </el-menu-item>
-                    <el-menu-item index="2">
+                    <el-menu-item index="2" @click="currentView = 'desk'">
                         <el-icon><Notebook /></el-icon>
                         <template #title>书桌</template>
                     </el-menu-item>
@@ -90,6 +90,7 @@
                             <span v-if="currentView === 'courses'">我的课表</span>
                             <span v-else-if="currentView === 'emails'">我的邮箱</span>
                             <span v-else-if="currentView === 'todos'">我的待办</span>
+                            <span v-else-if="currentView === 'desk'">我的书桌</span>
                             <span v-else>OrangePlanet</span>
                         </h2>
                         <template v-if="currentView === 'courses'">
@@ -107,6 +108,9 @@
                         </template>
                         <template v-if="currentView === 'todos'">
                             <el-button type="primary" @click="openTodoDialog()" style="margin-left: 20px;">新建待办</el-button>
+                        </template>
+                        <template v-if="currentView === 'desk'">
+                            <el-button type="primary" @click="fetchLearningCourses" :loading="loading" style="margin-left: 20px;">刷新课程</el-button>
                         </template>
                     </div>
                     <div class="header-right">
@@ -182,6 +186,46 @@
                         </div>
                     </div>
 
+                    <!-- Desk View -->
+                    <div v-if="currentView === 'desk'" class="desk-wrapper" style="flex: 1; overflow: auto; padding: 20px;">
+                        <!-- Skeleton Loading -->
+                        <div v-if="loading" class="learning-courses-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+                            <el-card v-for="i in 8" :key="i" class="learning-course-card" shadow="never" style="padding: 0;" :body-style="{ padding: '0px' }">
+                                <el-skeleton animated>
+                                    <template #template>
+                                        <el-skeleton-item variant="image" style="width: 100%; height: 140px;" />
+                                        <div style="padding: 14px;">
+                                            <el-skeleton-item variant="h3" style="width: 50%; margin-bottom: 8px;" />
+                                            <el-skeleton-item variant="text" style="width: 80%;" />
+                                        </div>
+                                    </template>
+                                </el-skeleton>
+                            </el-card>
+                        </div>
+
+                        <!-- Content -->
+                        <template v-else>
+                            <el-empty v-if="learningCourses.length === 0" description="暂无课程"></el-empty>
+                            <div v-else class="learning-courses-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+                                <el-card v-for="course in learningCourses" :key="course.id" class="learning-course-card" shadow="hover" @click="showLearningDetails(course)" style="cursor: pointer; padding: 0;" :body-style="{ padding: '0px' }">
+                                    <div class="course-cover" :style="getCourseCoverStyle(course)" style="height: 140px; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center;">
+                                        <img v-if="course.cover" :src="course.cover" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <div v-else style="color: rgba(255,255,255,0.8); font-size: 24px; font-weight: bold; padding: 20px; text-align: center;">
+                                            {{ course.name ? course.name.substring(0, 2) : '' }}
+                                        </div>
+                                    </div>
+                                    <div style="padding: 14px;">
+                                        <div class="learning-course-name" style="font-weight: bold; font-size: 16px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" :title="course.name">{{ course.name }}</div>
+                                        <div class="learning-course-info" style="font-size: 13px; color: #606266;">
+                                            <p v-if="course.instructors && course.instructors.length > 0" style="margin: 0;">{{ course.instructors.map(i => i.name).join(', ') }}</p>
+                                            <p v-else style="margin: 0;">&nbsp;</p>
+                                        </div>
+                                    </div>
+                                </el-card>
+                            </div>
+                        </template>
+                    </div>
+
                     <!-- Todo Dialog -->
                     <el-dialog v-model="todoDialogVisible" :title="currentTodo.id ? '编辑待办' : '新建待办'" width="500px">
                         <el-form :model="currentTodo" label-position="top">
@@ -208,6 +252,38 @@
                                 <p><strong>时间:</strong> {{ currentEmail.date }}</p>
                             </div>
                             <div class="email-body" style="white-space: pre-wrap; line-height: 1.6;" v-html="currentEmail.content"></div>
+                        </div>
+                    </el-dialog>
+                    
+                    <!-- Learning Course Detail Dialog -->
+                    <el-dialog v-model="learningDialogVisible" :title="currentLearningCourse ? currentLearningCourse.name : ''" width="70%">
+                        <div v-if="currentLearningCourse">
+                            <el-tabs v-model="learningActiveTab">
+                                <el-tab-pane label="课件" name="uploads">
+                                    <el-empty v-if="!courseUploads || courseUploads.length === 0" description="暂无课件"></el-empty>
+                                    <ul v-else style="list-style: none; padding: 0;">
+                                        <li v-for="file in courseUploads" :key="file.id" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                                            <span>{{ file.title || file.file_name }}</span>
+                                            <el-button type="primary" link @click="openFile(file.url)">下载/预览</el-button>
+                                        </li>
+                                    </ul>
+                                </el-tab-pane>
+                                <el-tab-pane label="点名" name="rollcalls">
+                                    <div style="margin-bottom: 10px;">
+                                        <el-button type="primary" @click="fetchRollCalls(currentLearningCourse.id)">刷新点名</el-button>
+                                    </div>
+                                    <el-empty v-if="!courseRollCalls || courseRollCalls.length === 0" description="暂无点名"></el-empty>
+                                    <ul v-else style="list-style: none; padding: 0;">
+                                        <li v-for="rc in courseRollCalls" :key="rc.id" style="padding: 10px; border-bottom: 1px solid #eee;">
+                                            <div>{{ rc.title }}</div>
+                                            <div style="font-size: 12px; color: #999;">{{ rc.start_time }} - {{ rc.end_time }}</div>
+                                            <div style="margin-top: 5px;">
+                                                <el-tag :type="rc.status === 'active' ? 'success' : 'info'">{{ rc.status }}</el-tag>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </el-tab-pane>
+                            </el-tabs>
                         </div>
                     </el-dialog>
                     
