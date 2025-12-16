@@ -18,11 +18,12 @@ public class Course {
     private String credits;     // 学分
     private String test;        // 考试
     private String periodCount; // 节数
+    private String grade;       // 成绩
 
     public Course() {
     }
 
-    public Course(String id, String name, String teacher, String location, String dayOfWeek, String startTime, String weeks, String credits, String test) {
+    public Course(String id, String name, String teacher, String location, String dayOfWeek, String startTime, String weeks, String credits, String test, String grade) {
         this.id = id;
         this.name = name;
         this.teacher = teacher;
@@ -32,6 +33,7 @@ public class Course {
         this.weeks = weeks;
         this.credits = credits;
         this.test = test;
+        this.grade = grade;
     }
 
     public String getId() {
@@ -112,5 +114,13 @@ public class Course {
 
     public void setPeriodCount(String periodCount) {
         this.periodCount = periodCount;
+    }
+
+    public String getGrade() {
+        return grade;
+    }
+
+    public void setGrade(String grade) {
+        this.grade = grade;
     }
 }

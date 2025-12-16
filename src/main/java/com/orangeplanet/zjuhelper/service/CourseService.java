@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -159,6 +161,10 @@ public class CourseService {
             } else {
                 logger.warn("Course response is null.");
             }
+            
+            // Fetch grades
+            Map<String, Map<String, String>> gradesMap = fetchGrades(xnm, xqm);
+
             // 5. 解析返回的 JSON
             List<Course> courses = new ArrayList<>();
             try {
@@ -233,6 +239,16 @@ public class CourseService {
 
                         // 只有当解析出有效课程时才添加
                         if (course.getName() != null) {
+                            // Match grade and credits
+                            if (gradesMap.containsKey(course.getName())) {
+                                Map<String, String> info = gradesMap.get(course.getName());
+                                if (info.containsKey("grade")) {
+                                    course.setGrade(info.get("grade"));
+                                }
+                                if (info.containsKey("credits")) {
+                                    course.setCredits(info.get("credits"));
+                                }
+                            }
                             courses.add(course);
                         }
                     }
@@ -247,6 +263,50 @@ public class CourseService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch course list", e);
         }
+    }
+
+    private Map<String, Map<String, String>> fetchGrades(String year, String semester) {
+        Map<String, Map<String, String>> gradesMap = new HashMap<>();
+        String gradeUrl = "https://zdbk.zju.edu.cn/jwglxt/cxdy/xscjcx_cxXscjIndex.html?doType=query";
+        
+        String xnm = (year != null && !year.isEmpty()) ? year : "2024-2025";
+        String xqm = (semester != null && !semester.isEmpty()) ? semester : "1";
+
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("xnm", xnm));
+        params.add(new BasicNameValuePair("xqm", xqm));
+        params.add(new BasicNameValuePair("_search", "false"));
+        params.add(new BasicNameValuePair("nd", String.valueOf(System.currentTimeMillis())));
+        params.add(new BasicNameValuePair("queryModel.showCount", "100"));
+        params.add(new BasicNameValuePair("queryModel.currentPage", "1"));
+        params.add(new BasicNameValuePair("queryModel.sortName", ""));
+        params.add(new BasicNameValuePair("queryModel.sortOrder", "asc"));
+        params.add(new BasicNameValuePair("time", "0"));
+
+        try (CloseableHttpResponse response = HttpClientUtil.doPostForResponse(gradeUrl, new UrlEncodedFormEntity(params, StandardCharsets.UTF_8), true)) {
+            if (response.getCode() == 200) {
+                String json = EntityUtils.toString(response.getEntity());
+                JsonNode root = objectMapper.readTree(json);
+                JsonNode items = root.get("items");
+                if (items != null && items.isArray()) {
+                    for (JsonNode item : items) {
+                        String courseName = item.has("kcmc") ? item.get("kcmc").asText() : "";
+                        String grade = item.has("cj") ? item.get("cj").asText() : "";
+                        String credits = item.has("xf") ? item.get("xf").asText() : "";
+                        
+                        if (!courseName.isEmpty()) {
+                            Map<String, String> info = new HashMap<>();
+                            if (!grade.isEmpty()) info.put("grade", grade);
+                            if (!credits.isEmpty()) info.put("credits", credits);
+                            gradesMap.put(courseName, info);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to fetch grades", e);
+        }
+        return gradesMap;
     }
 
     private String mapDayOfWeek(String xqj) {
