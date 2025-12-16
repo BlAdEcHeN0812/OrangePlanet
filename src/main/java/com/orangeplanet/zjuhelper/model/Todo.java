@@ -18,9 +18,12 @@ public class Todo {
     private boolean completed;
 
     private LocalDateTime createdAt;
+    
+    private LocalDateTime updatedAt;
 
     public Todo() {
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public Todo(String title, String content) {
@@ -28,6 +31,7 @@ public class Todo {
         this.content = content;
         this.completed = false;
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -68,5 +72,13 @@ public class Todo {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

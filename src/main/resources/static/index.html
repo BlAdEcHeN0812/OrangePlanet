@@ -176,6 +176,9 @@
                                     <div class="todo-info">
                                         <div class="todo-title" :class="{ 'text-completed': todo.completed }">{{ todo.title }}</div>
                                         <div class="todo-desc" v-if="todo.content">{{ todo.content }}</div>
+                                        <div class="todo-date" style="font-size: 12px; color: #999; margin-top: 4px;" v-if="todo.updatedAt">
+                                            上次编辑: {{ formatDate(todo.updatedAt) }}
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="todo-actions">
@@ -263,8 +266,10 @@
                                     <el-empty v-if="!courseUploads || courseUploads.length === 0" description="暂无课件"></el-empty>
                                     <ul v-else style="list-style: none; padding: 0;">
                                         <li v-for="file in courseUploads" :key="file.id" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                                            <span>{{ file.title || file.file_name }}</span>
-                                            <el-button type="primary" link @click="openFile(file.url)">下载/预览</el-button>
+                                            <span :title="file.title || file.file_name" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px;">{{ file.title || file.file_name }}</span>
+                                            <div style="flex-shrink: 0;">
+                                                <el-button type="primary" link @click="downloadFile(file.url)">下载</el-button>
+                                            </div>
                                         </li>
                                     </ul>
                                 </el-tab-pane>

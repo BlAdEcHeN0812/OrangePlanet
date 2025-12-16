@@ -303,6 +303,11 @@ const app = createApp({
                     
                     learningCourses.value = data.courses.filter(course => {
                         return course.course_code && course.course_code.startsWith(prefix);
+                    }).map(course => {
+                        if (!course.cover) {
+                            course.cover = 'https://courses.zju.edu.cn/static/assets/images/large/74db89b7f92df4c9f372.png';
+                        }
+                        return course;
                     });
                 } else {
                     learningCourses.value = [];
@@ -329,20 +334,40 @@ const app = createApp({
                 const response = await fetch(`${API_BASE}/learning/courses/${courseId}/uploads`);
                 const data = await response.json();
                 
-                // The backend now returns the 'activities' list for this endpoint
-                let files = [];
-                
+                let activities = [];
                 if (Array.isArray(data)) {
-                    files = data;
+                    activities = data;
                 } else if (data && data.activities) {
-                    files = data.activities;
+                    activities = data.activities;
                 }
 
-                // Filter for uploads/files
-                // Common types: 'upload', 'file', 'resource'
-                courseUploads.value = files.filter(item => {
-                    return item.type === 'upload' || item.type === 'file' || (item.uploads && item.uploads.length > 0);
+                // Flatten the structure: extract uploads from activities
+                const extractedFiles = [];
+                activities.forEach(activity => {
+                    // Case 1: Activity has uploads array
+                    if (activity.uploads && activity.uploads.length > 0) {
+                        activity.uploads.forEach(upload => {
+                            let fileUrl = upload.url;
+                            if (!fileUrl) {
+                                // Fallback construction
+                                if (upload.reference_id) {
+                                    fileUrl = `https://courses.zju.edu.cn/api/uploads/reference/${upload.reference_id}/blob`;
+                                } else if (upload.id) {
+                                    fileUrl = `https://courses.zju.edu.cn/api/uploads/${upload.id}/blob`;
+                                }
+                            }
+                            
+                            extractedFiles.push({
+                                id: upload.id,
+                                title: upload.file_name || activity.title,
+                                url: fileUrl,
+                                file_name: upload.file_name
+                            });
+                        });
+                    } 
                 });
+
+                courseUploads.value = extractedFiles;
                 
             } catch (error) {
                 console.error('Failed to fetch uploads:', error);
@@ -353,20 +378,53 @@ const app = createApp({
             try {
                 const response = await fetch(`${API_BASE}/learning/courses/${courseId}/rollcalls`);
                 const data = await response.json();
-                // Adapt based on actual API response
+                console.log("Rollcall raw data:", data);
+
+                let activities = [];
                 if (Array.isArray(data)) {
-                    courseRollCalls.value = data;
+                    activities = data;
                 } else if (data && data.activities) {
-                     courseRollCalls.value = data.activities.filter(a => a.type === 'rollcall');
+                    activities = data.activities;
+                } else if (data && data.rollcalls) {
+                    activities = data.rollcalls;
                 }
+
+                // Filter for roll calls
+                // Common types: 'rollcall', 'classroom_sign_in'
+                // If using radar/rollcalls, the items are already roll calls.
+                courseRollCalls.value = activities.filter(a => {
+                    // If we are using the radar endpoint, we might want to filter by courseId if available in the data
+                    // But for now, let's just show what we get, or filter if course_id matches
+                    if (a.course_id && String(a.course_id) !== String(courseId)) {
+                        return false;
+                    }
+                    return true;
+                });
+                
             } catch (error) {
                 console.error('Failed to fetch roll calls:', error);
                 ElMessage.error('获取点名失败');
             }
         };
         
-        const openFile = (url) => {
-            window.open(url, '_blank');
+        const getProxyUrl = (url) => {
+            return `${API_BASE}/learning/file/proxy?url=${encodeURIComponent(url)}`;
+        };
+
+        const downloadFile = (url) => {
+            const proxyUrl = getProxyUrl(url);
+            // Create a temporary link to trigger download
+            const link = document.createElement('a');
+            link.href = proxyUrl;
+            link.download = ''; // Browser should infer filename from Content-Disposition
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        const previewFile = (url) => {
+            const proxyUrl = getProxyUrl(url);
+            window.open(proxyUrl, '_blank');
         };
 
         const refreshCourses = async () => {
@@ -469,6 +527,12 @@ const app = createApp({
             };
         };
 
+        const formatDate = (dateStr) => {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleString('zh-CN', { hour12: false });
+        };
+
         onMounted(() => {
             checkBackendAndLoad();
             const savedPass = localStorage.getItem('email_password');
@@ -494,6 +558,7 @@ const app = createApp({
             showEmailDetails,
             getCourseStyle,
             getCourseCoverStyle,
+            formatDate,
             User,
             Lock,
             selectedYear,
@@ -537,7 +602,8 @@ const app = createApp({
             fetchLearningCourses,
             showLearningDetails,
             fetchRollCalls,
-            openFile,
+            downloadFile,
+            previewFile,
             Picture
         };
     }

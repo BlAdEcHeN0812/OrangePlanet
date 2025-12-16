@@ -26,6 +26,7 @@ public class TodoService {
         todo.setTitle(todoDetails.getTitle());
         todo.setContent(todoDetails.getContent());
         todo.setCompleted(todoDetails.isCompleted());
+        todo.setUpdatedAt(java.time.LocalDateTime.now());
         return todoRepository.save(todo);
     }
 

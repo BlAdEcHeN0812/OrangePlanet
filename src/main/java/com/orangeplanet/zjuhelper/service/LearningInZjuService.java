@@ -68,8 +68,8 @@ public class LearningInZjuService {
     }
 
     public JsonNode getRollCalls(String courseId) {
-        // API for roll calls
-        String url = "https://courses.zju.edu.cn/api/courses/" + courseId + "/rollcalls";
+        // Use the radar endpoint as seen in Login.cs
+        String url = "https://courses.zju.edu.cn/api/radar/rollcalls";
         try {
             String json = HttpClientUtil.doGet(url);
             return objectMapper.readTree(json);
@@ -77,5 +77,9 @@ public class LearningInZjuService {
             logger.error("Failed to get roll calls for " + courseId, e);
             return null;
         }
+    }
+
+    public CloseableHttpResponse downloadFile(String url) throws java.io.IOException {
+        return HttpClientUtil.doGetForResponse(url, true);
     }
 }
