@@ -389,15 +389,25 @@ const app = createApp({
                     activities = data.rollcalls;
                 }
 
-                // Filter for roll calls
-                // Common types: 'rollcall', 'classroom_sign_in'
-                // If using radar/rollcalls, the items are already roll calls.
+                // Filter for roll calls and deduplicate
+                const seenIds = new Set();
                 courseRollCalls.value = activities.filter(a => {
-                    // If we are using the radar endpoint, we might want to filter by courseId if available in the data
-                    // But for now, let's just show what we get, or filter if course_id matches
+                    // Filter by type if present (activities list items have type, radar items might not)
+                    if (a.type && a.type !== 'rollcall' && a.type !== 'classroom_sign_in') {
+                        return false;
+                    }
+
+                    // Filter by course_id
                     if (a.course_id && String(a.course_id) !== String(courseId)) {
                         return false;
                     }
+                    
+                    // Deduplicate
+                    if (a.id && seenIds.has(a.id)) {
+                        return false;
+                    }
+                    if (a.id) seenIds.add(a.id);
+                    
                     return true;
                 });
                 

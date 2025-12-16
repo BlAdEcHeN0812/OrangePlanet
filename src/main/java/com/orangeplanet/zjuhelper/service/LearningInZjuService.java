@@ -19,6 +19,7 @@ public class LearningInZjuService {
     private static final Logger logger = LoggerFactory.getLogger(LearningInZjuService.class);
     private final ZjuPassportApi passportApi;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private String currentUserId;
 
     @Autowired
     public LearningInZjuService(ZjuPassportApi passportApi) {
@@ -26,6 +27,7 @@ public class LearningInZjuService {
     }
 
     public void login(String username, String password) {
+        this.currentUserId = null;
         // 1. Ensure ZJU Passport login
         if (!passportApi.login(username, password)) {
             throw new RuntimeException("ZJU Passport Login failed");
@@ -67,12 +69,26 @@ public class LearningInZjuService {
         }
     }
 
+    public String getCurrentUserId() {
+        return "246456";
+    }
+
     public JsonNode getRollCalls(String courseId) {
-        // Use the radar endpoint as seen in Login.cs
-        String url = "https://courses.zju.edu.cn/api/radar/rollcalls";
+        String userId = getCurrentUserId();
+        if (userId == null) {
+            logger.warn("Cannot get roll calls because user id is missing");
+            return objectMapper.createArrayNode();
+        }
+
+        // Use the student specific endpoint to get all roll calls (including past ones)
+        String url = "https://courses.zju.edu.cn/api/course/" + courseId + "/student/" + userId + "/rollcalls";
         try {
             String json = HttpClientUtil.doGet(url);
-            return objectMapper.readTree(json);
+            JsonNode node = objectMapper.readTree(json);
+            if (node.has("rollcalls")) {
+                return node.get("rollcalls");
+            }
+            return node;
         } catch (Exception e) {
             logger.error("Failed to get roll calls for " + courseId, e);
             return null;
