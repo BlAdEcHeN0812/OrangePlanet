@@ -278,15 +278,14 @@
                                         <el-button type="primary" @click="fetchRollCalls(currentLearningCourse.id)">刷新点名</el-button>
                                     </div>
                                     <el-empty v-if="!courseRollCalls || courseRollCalls.length === 0" description="暂无点名"></el-empty>
-                                    <ul v-else style="list-style: none; padding: 0;">
-                                        <li v-for="rc in courseRollCalls" :key="rc.id" style="padding: 10px; border-bottom: 1px solid #eee;">
-                                            <div>{{ rc.title }}</div>
-                                            <div style="font-size: 12px; color: #999;">{{ rc.start_time }} - {{ rc.end_time }}</div>
-                                            <div style="margin-top: 5px;">
-                                                <el-tag :type="rc.status === 'active' ? 'success' : 'info'">{{ rc.status }}</el-tag>
+                                    <div v-else class="rollcall-list">
+                                        <div v-for="rc in courseRollCalls" :key="rc.id" class="rollcall-item">
+                                            <div class="rollcall-content">
+                                                <span class="rollcall-title">[{{ getRollCallType(rc) }}] {{ rc.title }}</span>
                                             </div>
-                                        </li>
-                                    </ul>
+                                            <el-icon><ArrowRight /></el-icon>
+                                        </div>
+                                    </div>
                                 </el-tab-pane>
                             </el-tabs>
                         </div>
@@ -315,6 +314,6 @@
             </el-container>
         </el-container>
     </div>
-    <script src="renderer.js?v=7"></script>
+    <script src="renderer.js?v=8"></script>
 </body>
 </html>

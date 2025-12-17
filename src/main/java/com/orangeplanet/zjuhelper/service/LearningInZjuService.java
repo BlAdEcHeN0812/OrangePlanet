@@ -74,21 +74,12 @@ public class LearningInZjuService {
     }
 
     public JsonNode getRollCalls(String courseId) {
-        String userId = getCurrentUserId();
-        if (userId == null) {
-            logger.warn("Cannot get roll calls because user id is missing");
-            return objectMapper.createArrayNode();
-        }
-
-        // Use the student specific endpoint to get all roll calls (including past ones)
-        String url = "https://courses.zju.edu.cn/api/course/" + courseId + "/student/" + userId + "/rollcalls";
+        // Use the module specific endpoint to get roll calls
+        String url = "https://courses.zju.edu.cn/api/courses/" + courseId + "/modules/rollcalls";
         try {
             String json = HttpClientUtil.doGet(url);
-            JsonNode node = objectMapper.readTree(json);
-            if (node.has("rollcalls")) {
-                return node.get("rollcalls");
-            }
-            return node;
+            
+            return objectMapper.readTree(json);
         } catch (Exception e) {
             logger.error("Failed to get roll calls for " + courseId, e);
             return null;

@@ -3,7 +3,7 @@ const { ElMessage } = ElementPlus;
 
 // Ensure ElementPlusIconsVue is available
 const Icons = typeof ElementPlusIconsVue !== 'undefined' ? ElementPlusIconsVue : {};
-const { User, Lock, List, Message, Notebook, Calendar, Setting, Close, Delete, Edit, Plus, Picture } = Icons;
+const { User, Lock, List, Message, Notebook, Calendar, Setting, Close, Delete, Edit, Plus, Picture, ArrowRight } = Icons;
 
 if (Object.keys(Icons).length === 0) {
     console.error("Element Plus Icons not loaded! Check network or CDN.");
@@ -393,7 +393,8 @@ const app = createApp({
                 const seenIds = new Set();
                 courseRollCalls.value = activities.filter(a => {
                     // Filter by type if present (activities list items have type, radar items might not)
-                    if (a.type && a.type !== 'rollcall' && a.type !== 'classroom_sign_in') {
+                    // Allow 'another' as it is returned by the modules/rollcalls endpoint
+                    if (a.type && a.type !== 'rollcall' && a.type !== 'classroom_sign_in' && a.type !== 'another') {
                         return false;
                     }
 
@@ -543,6 +544,24 @@ const app = createApp({
             return date.toLocaleString('zh-CN', { hour12: false });
         };
 
+        const formatRollCallTime = (dateStr) => {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}.${month}.${day} ${hours}:${minutes}`;
+        };
+
+        const getRollCallType = (rc) => {
+            if (rc.source === 'number' || rc.is_number) return '数字点名';
+            if (rc.source === 'radar' || rc.is_radar) return '雷达点名';
+            if (rc.source === 'qrcode') return '二维码点名';
+            return '点名';
+        };
+
         onMounted(() => {
             checkBackendAndLoad();
             const savedPass = localStorage.getItem('email_password');
@@ -579,12 +598,6 @@ const app = createApp({
             fetchEmails,
             emails,
             currentView,
-            getCourseCoverStyle,
-            getCourseStyle,
-            showDetails,
-            logout,
-            User,
-            Lock,
             List,
             Message,
             Notebook,
@@ -614,7 +627,10 @@ const app = createApp({
             fetchRollCalls,
             downloadFile,
             previewFile,
-            Picture
+            Picture,
+            ArrowRight,
+            formatRollCallTime,
+            getRollCallType
         };
     }
 });
