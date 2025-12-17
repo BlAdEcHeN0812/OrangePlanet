@@ -317,6 +317,10 @@ body {
 @keyframes glitch-anim-2 {
     0% { clip: rect(80px, 9999px, 30px, 0); }
     20% { clip: rect(10px, 9999px, 90px, 0); }
+    40% { clip: rect(50px, 9999px, 20px, 0); }
+    60% { clip: rect(20px, 9999px, 60px, 0); }
+    80% { clip: rect(60px, 9999px, 10px, 0); }
+    100% { clip: rect(40px, 9999px, 80px, 0); }
 }
 
 /* Todo List Styles */
@@ -394,11 +398,6 @@ body {
     height: 9px;
     left: 6px;
     top: 2px;
-}
-    40% { clip: rect(50px, 9999px, 20px, 0); }
-    60% { clip: rect(20px, 9999px, 60px, 0); }
-    80% { clip: rect(60px, 9999px, 10px, 0); }
-    100% { clip: rect(40px, 9999px, 80px, 0); }
 }
 
 @keyframes scan {
