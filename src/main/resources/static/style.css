@@ -630,3 +630,20 @@ body {
 .rollcall-time {
     color: #606266;
 }
+
+/* Brand Title */
+.brand-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    background: linear-gradient(135deg, #FF9F43 0%, #5F27CD 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+}
+
+.view-title {
+    font-size: 16px;
+    color: #606266;
+    font-weight: 500;
+}

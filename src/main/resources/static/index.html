@@ -58,7 +58,7 @@
                     class="el-menu-vertical"
                 >
                     <div class="logo-container">
-                        <el-icon :size="24" color="#409EFF"><ElementPlus /></el-icon>
+                        <el-icon :size="30" color="#ffaa00"><Sunrise /></el-icon>
                     </div>
                     <el-menu-item index="1" @click="currentView = 'courses'">
                         <el-icon><Calendar /></el-icon>
@@ -84,15 +84,18 @@
             </el-aside>
 
             <el-container>
-                <el-header class="app-header">
+                <el-header class="app-header" style="position: relative;">
+                    <div class="header-center" style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center;">
+                        <img src="./logo.jpg" alt="Logo" style="width: 50px; height: 50px; margin-top: -2px;" />
+                        <h2 class="brand-title" style="margin: 0;">OrangePlanet</h2>
+                    </div>
                     <div class="header-left">
-                        <h2>
+                        <span class="view-title">
                             <span v-if="currentView === 'courses'">我的课表</span>
                             <span v-else-if="currentView === 'emails'">我的邮箱</span>
                             <span v-else-if="currentView === 'todos'">我的待办</span>
                             <span v-else-if="currentView === 'desk'">我的书桌</span>
-                            <span v-else>OrangePlanet</span>
-                        </h2>
+                        </span>
                         <template v-if="currentView === 'courses'">
                             <el-select v-model="selectedYear" placeholder="学年" style="width: 140px; margin-left: 20px;">
                                 <el-option v-for="year in yearOptions" :key="year.value" :label="year.label" :value="year.value"></el-option>

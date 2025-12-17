@@ -303,7 +303,18 @@ const app = createApp({
                     
                     learningCourses.value = data.courses.filter(course => {
                         return course.course_code && course.course_code.startsWith(prefix);
-                    }).map(course => {
+                    }).map((/** @type {any} */ course) => {
+                        console.log("Processing course:", course.name);
+                        console.log("Full course object:", JSON.stringify(course));
+                        
+                        // Check for small_cover
+                        if (course.small_cover) {
+                            console.log("Found small_cover:", course.small_cover);
+                            course.cover = course.small_cover;
+                        } else {
+                            console.log("No small_cover found");
+                        }
+
                         if (!course.cover) {
                             course.cover = 'https://courses.zju.edu.cn/static/assets/images/large/74db89b7f92df4c9f372.png';
                         }

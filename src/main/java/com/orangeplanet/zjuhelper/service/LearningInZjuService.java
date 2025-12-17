@@ -5,14 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.orangeplanet.zjuhelper.api.ZjuPassportApi;
 import com.orangeplanet.zjuhelper.util.HttpClientUtil;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
+
 
 @Service
 public class LearningInZjuService {
