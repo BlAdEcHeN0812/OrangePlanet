@@ -12,6 +12,7 @@ if (Object.keys(Icons).length === 0) {
 const app = createApp({
     setup() {
         const API_BASE = '/api';
+        const DEFAULT_LEARNING_COURSE_COVER = 'https://courses.zju.edu.cn/static/assets/images/large/74db89b7f92df4c9f372.png';
         const isLoggedIn = ref(false);
         const loading = ref(false);
         const courses = ref([]);
@@ -126,9 +127,7 @@ const app = createApp({
                     isLoggedIn.value = false;
                 }
             } catch (e) {
-                console.log("Backend not ready yet, retrying...");
                 // Don't retry indefinitely to avoid console spam if server is down
-                // setTimeout(checkBackendAndLoad, 2000);
             }
         };
 
@@ -148,6 +147,7 @@ const app = createApp({
                     emails.value = await response.json();
                     ElMessage.success('邮件获取成功');
                     if (emailPassword.value) {
+                        
                         localStorage.setItem('email_password', emailPassword.value);
                     }
                 } else {
@@ -163,12 +163,10 @@ const app = createApp({
 
         // Todo Functions
         const fetchTodos = async () => {
-            console.log('Fetching todos...');
             try {
                 const response = await fetch(`${API_BASE}/todos`);
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('Fetched todos:', data);
                     todos.value = data;
                 } else {
                     console.error('Failed to fetch todos:', response.status);
@@ -264,7 +262,6 @@ const app = createApp({
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log("Login success, data:", data);
                     courses.value = data;
                     isLoggedIn.value = true;
                     ElMessage.success('登录成功');
@@ -281,6 +278,16 @@ const app = createApp({
             }
         };
 
+        const coerceHttps = (url) => {
+            if (!url) return '';
+            const trimmed = url.trim();
+            if (!trimmed) return '';
+            if (trimmed.startsWith('http://')) {
+                return 'https://' + trimmed.substring('http://'.length);
+            }
+            return trimmed;
+        };
+
         const fetchLearningCourses = async () => {
             loading.value = true;
             try {
@@ -289,7 +296,16 @@ const app = createApp({
                 
                 const response = await fetch(`${API_BASE}/learning/courses`);
                 const data = await response.json();
-                if (data && data.courses) {
+                let coursesPayload = [];
+                if (Array.isArray(data)) {
+                    coursesPayload = data;
+                } else if (data && Array.isArray(data.courses)) {
+                    coursesPayload = data.courses;
+                } else if (data && Array.isArray(data.data)) {
+                    coursesPayload = data.data;
+                }
+
+                if (coursesPayload.length > 0) {
                     // Filter based on selected year and semester
                     // Format of course_code: (2024-2025-1)-...
                     const year = selectedYear.value;
@@ -301,25 +317,23 @@ const app = createApp({
                     const prefix = `(${year}-${semester})`;
                     console.log("Filtering courses with prefix:", prefix);
                     
-                    learningCourses.value = data.courses.filter(course => {
-                        return course.course_code && course.course_code.startsWith(prefix);
-                    }).map((/** @type {any} */ course) => {
-                        console.log("Processing course:", course.name);
-                        console.log("Full course object:", JSON.stringify(course));
-                        
-                        // Check for small_cover
-                        if (course.small_cover) {
-                            console.log("Found small_cover:", course.small_cover);
-                            course.cover = course.small_cover;
-                        } else {
-                            console.log("No small_cover found");
-                        }
-
-                        if (!course.cover) {
-                            course.cover = 'https://courses.zju.edu.cn/static/assets/images/large/74db89b7f92df4c9f372.png';
-                        }
-                        return course;
-                    });
+                    learningCourses.value = coursesPayload
+                        .filter(course => {
+                            if (!course || !course.course_code) {
+                                return false;
+                            }
+                            return course.course_code.startsWith(prefix);
+                        })
+                        .map(course => {
+                            const normalized = { ...course };
+                            const rawCover = coerceHttps(course.small_cover || course.cover || course.large_cover);
+                            if (rawCover) {
+                                normalized.cover = getProxyUrl(rawCover);
+                            } else {
+                                normalized.cover = DEFAULT_LEARNING_COURSE_COVER;
+                            }
+                            return normalized;
+                        });
                 } else {
                     learningCourses.value = [];
                 }
@@ -429,9 +443,9 @@ const app = createApp({
             }
         };
         
-        const getProxyUrl = (url) => {
+        function getProxyUrl(url) {
             return `${API_BASE}/learning/file/proxy?url=${encodeURIComponent(url)}`;
-        };
+        }
 
         const downloadFile = (url) => {
             const proxyUrl = getProxyUrl(url);

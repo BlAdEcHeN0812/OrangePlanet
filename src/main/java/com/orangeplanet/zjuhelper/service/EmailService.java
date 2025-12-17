@@ -33,9 +33,7 @@ public class EmailService {
             emailUser = emailUser + "@zju.edu.cn";
         }
 
-        System.out.println("Connecting to IMAP server with user: " + emailUser);
         store.connect("imap.zju.edu.cn", emailUser, password);
-        System.out.println("Connected to IMAP server.");
 
         Folder inbox = store.getFolder("INBOX");
         inbox.open(Folder.READ_ONLY);

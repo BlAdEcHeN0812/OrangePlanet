@@ -15,6 +15,18 @@
     <script src="https://unpkg.com/@element-plus/icons-vue"></script>
 </head>
 <body>
+    <div class="bubble-bg">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+    </div>
     <div id="app">
         <!-- Login View -->
         <div v-if="!isLoggedIn" class="login-container minimalist-theme">
@@ -53,12 +65,12 @@
                     default-active="1"
                     background-color="#fff"
                     text-color="#606266"
-                    active-text-color="#409EFF"
+                    active-text-color="#FF9F43"
                     collapse
                     class="el-menu-vertical"
                 >
                     <div class="logo-container">
-                        <el-icon :size="30" color="#ffaa00"><Sunrise /></el-icon>
+                        <el-icon :size="30" color="#FF9F43"><Sunrise /></el-icon>
                     </div>
                     <el-menu-item index="1" @click="currentView = 'courses'">
                         <el-icon><Calendar /></el-icon>
@@ -86,7 +98,7 @@
             <el-container>
                 <el-header class="app-header" style="position: relative;">
                     <div class="header-center" style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center;">
-                        <img src="./logo.jpg" alt="Logo" style="width: 50px; height: 50px; margin-top: -2px;" />
+                        <img src="./images/logo.jpg" alt="Logo" style="width: 50px; height: 50px; margin-top: -2px;" />
                         <h2 class="brand-title" style="margin: 0;">OrangePlanet</h2>
                     </div>
                     <div class="header-left">
@@ -121,7 +133,7 @@
                     </div>
                 </el-header>
                 
-                <el-main style="padding: 0; overflow: hidden; display: flex; background-color: #f5f7fa;">
+                <el-main style="padding: 0; overflow: hidden; display: flex; background-color: transparent;">
                     <div v-if="currentView === 'courses'" class="timetable-wrapper" style="flex: 1; overflow: auto; display: flex; padding: 20px;">
                         <!-- Time Column -->
                         <div class="time-column">
@@ -171,7 +183,7 @@
                     </div>
 
                     <!-- Todo View -->
-                    <div v-if="currentView === 'todos'" class="todo-wrapper" style="flex: 1; overflow: auto; padding: 20px; background-color: #fff;">
+                    <div v-if="currentView === 'todos'" class="todo-wrapper" style="flex: 1; overflow: auto; padding: 20px;">
                         <div class="todo-list">
                             <div v-for="todo in todos" :key="todo.id" class="todo-item">
                                 <div class="todo-main">

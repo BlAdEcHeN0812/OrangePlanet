@@ -186,15 +186,6 @@ public class CourseService {
                             if (parts.length > 0) course.setName(parts[0]);
                             if (parts.length > 1) {
                                 course.setWeeks(parts[1]); // 这里包含了周次和节数信息
-                                String part1 = parts[1]; // 如 "秋冬{第1-8周|2节/周}"
-
-                                // 直接匹配第一个出现的 "数字+节"
-                                Pattern pattern = Pattern.compile("\\d+节");
-                                Matcher matcher = pattern.matcher(part1);
-
-                                if (matcher.find()) {
-                                    // course.setPeriod(matcher.group()); // Deprecated, use skcd
-                                }
                             }
                             if (parts.length > 2) course.setTeacher(parts[2]);
                             if (parts.length > 3) course.setLocation(parts[3]);
