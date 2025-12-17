@@ -588,7 +588,7 @@ const app = createApp({
         };
 
         onMounted(() => {
-            checkBackendAndLoad();
+            // checkBackendAndLoad();
             const savedPass = localStorage.getItem('email_password');
             if (savedPass) {
                 emailPassword.value = savedPass;
